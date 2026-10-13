@@ -29,6 +29,9 @@ _TBD_
 
 I used **Claude Code** because it's the tool I'm most familiar with and is widely considered the best coding agent at the moment.
 
-- Translating my Node/React approach into .NET and Angular idioms.
+These are the main usages:
+
+- A Translation bridge between my Node/React implementations into .NET and Angular idioms.
 - A general architecture and coding advisor.
-- Maintaining README.
+- README Maintainer.
+- Advanced UI and animations, within strict limits and examples I provided.
