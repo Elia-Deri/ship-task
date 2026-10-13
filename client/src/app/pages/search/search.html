@@ -1,0 +1,92 @@
+<section
+  class="hero relative flex min-h-[clamp(440px,60vh,720px)] items-center overflow-hidden bg-[#0b1f3a] pb-36 pt-16 text-white md:pb-44 md:pt-20 2xl:pb-56"
+>
+  <!-- background -->
+  <div class="glow top-right-glow"></div>
+  <div class="glow bottom-left-glow"></div>
+  <svg class="route hidden md:block" viewBox="0 0 400 200" fill="none" aria-hidden="true">
+    <path
+      d="M10 170 C 120 20, 280 20, 390 120"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-dasharray="6 8"
+    />
+    <circle cx="10" cy="170" r="6" fill="currentColor" />
+    <circle cx="390" cy="120" r="6" fill="currentColor" />
+  </svg>
+
+  <div class="page-container relative">
+    <h1 class="text-4xl font-bold tracking-tight md:text-5xl xl:text-6xl 2xl:text-7xl">
+      Ship it for less.
+    </h1>
+    <p class="mt-3 text-lg text-slate-300 xl:mt-4 xl:text-xl 2xl:text-2xl">
+      Compare live prices from seven carriers in seconds.
+    </p>
+
+    <form
+      [formGroup]="form"
+      (ngSubmit)="submit()"
+      class="mt-12 grid grid-cols-1 gap-3 md:mt-14 lg:grid-cols-[1fr_auto] xl:mt-16 2xl:mt-20"
+    >
+      <div
+        class="segments grid grid-cols-1 gap-0.5 overflow-hidden rounded-2xl shadow-2xl sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1.6fr]"
+      >
+        <mat-form-field appearance="fill" subscriptSizing="dynamic" class="seg">
+          <mat-label>From</mat-label>
+          <input matInput formControlName="source" placeholder="City or port" />
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" subscriptSizing="dynamic" class="seg">
+          <mat-label>To</mat-label>
+          <input matInput formControlName="destination" placeholder="City or port" />
+        </mat-form-field>
+
+        <div
+          cdkOverlayOrigin
+          #datesOrigin="cdkOverlayOrigin"
+          class="grid cursor-pointer grid-cols-2 gap-0.5 sm:col-span-2 lg:col-span-1"
+          (click)="changeCalendarState(true)"
+        >
+          <mat-form-field appearance="fill" subscriptSizing="dynamic" class="seg">
+            <mat-label>Start date</mat-label>
+            <input
+              matInput
+              readonly
+              placeholder="Add date"
+              class="cursor-pointer"
+              [value]="startDate() | date: 'EEE, d MMM'"
+            />
+          </mat-form-field>
+
+          <mat-form-field appearance="fill" subscriptSizing="dynamic" class="seg">
+            <mat-label>End date</mat-label>
+            <input
+              matInput
+              readonly
+              placeholder="Add date"
+              class="cursor-pointer"
+              [value]="endDate() | date: 'EEE, d MMM'"
+            />
+          </mat-form-field>
+        </div>
+      </div>
+
+      <ng-template
+        cdkConnectedOverlay
+        cdkConnectedOverlayPush
+        cdkConnectedOverlayHasBackdrop
+        cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop"
+        [cdkConnectedOverlayOrigin]="datesOrigin"
+        [cdkConnectedOverlayOpen]="isCalendarOpen()"
+        (detach)="changeCalendarState(false)"
+        (backdropClick)="changeCalendarState(false)"
+      >
+        <div class="calendar-panel">
+          <mat-calendar [selected]="selectedRange()" (selectedChange)="selectDate($event)" />
+        </div>
+      </ng-template>
+
+      <button mat-flat-button type="submit" class="search-btn w-full lg:w-auto">Search</button>
+    </form>
+  </div>
+</section>
