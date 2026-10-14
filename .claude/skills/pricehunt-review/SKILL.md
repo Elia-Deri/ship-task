@@ -35,7 +35,7 @@ Go **deeper than the diff**. Open the changed files and their close collaborator
 
 On **every** review, actively hunt these three classes in addition to logic/correctness:
 
-- **Naming** — names that lie or mislead (`price` holding a float when money is `long *Minor`; `handle*`/`on*` on internal methods or outputs; non-`is/has/should` booleans; C# async methods missing `Async`; vague identifiers).
+- **Naming** — names that lie or mislead (`price` holding a float or major units when money is always `long` minor units; a `*Minor` suffix, which the project dropped by decision; `handle*`/`on*` on internal methods or outputs; non-`is/has/should` booleans; C# async methods missing `Async`; vague identifiers).
 - **Typing** — `any` leaks, `!` null-forgiving in C# or TS to silence the compiler, untyped forms, loose object types that should be a shared interface / C# `record`, validators typed to the trusted target instead of `unknown`.
 - **Redundancy** — dead defensive code, `catch` blocks that swallow, stored derived state (a stored "responded count", a sorted copy kept beside the source list), logic duplicated between client and server, unused scaffold (`WeatherForecast*`).
 
@@ -89,7 +89,7 @@ When a `try/catch` or null-guard appears, check the **invariant** before accepti
 
 ### Data / EF Core (SQLite)
 
-- Money as `long *Minor`. `decimal` / `double` price columns — `[blocking]` (SQLite can't `ORDER BY` decimal via EF; floats lose money).
+- Money as `long` minor units, named plainly (`Price`, no `Minor` suffix). Dividing by 100 anywhere but the UI — `[important]`. `decimal` / `double` price columns — `[blocking]` (SQLite can't `ORDER BY` decimal via EF; floats lose money).
 - `DateTimeOffset` columns used in filter / sort — `[blocking]` (EF SQLite can't translate). Use UTC `DateTime`.
 - History filter / sort / page applied on `IQueryable` before materialization. `ToList()` then `Where` / `OrderBy` / `Skip` — `[important]`.
 - Schema auto-created on first run; no manual setup step.

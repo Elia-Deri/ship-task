@@ -1,0 +1,109 @@
+<form
+  [formGroup]="form"
+  (ngSubmit)="submit()"
+  class="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_auto]"
+>
+  <div
+    class="segments grid grid-cols-1 gap-0.5 overflow-hidden rounded-2xl shadow-2xl sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1.6fr_1.2fr]"
+  >
+    <div class="relative grid min-w-0 grid-cols-1 gap-0.5 sm:col-span-2 sm:grid-cols-2">
+      <mat-form-field appearance="fill" subscriptSizing="dynamic" class="seg route-from">
+        <mat-label>From</mat-label>
+        <input matInput formControlName="source" placeholder="City or port" />
+      </mat-form-field>
+
+      <button
+        type="button"
+        class="swap-btn"
+        aria-label="Swap origin and destination"
+        (click)="swapRoute()"
+      >
+        <span class="material-symbols-outlined">swap_horiz</span>
+      </button>
+
+      <mat-form-field appearance="fill" subscriptSizing="dynamic" class="seg route-to">
+        <mat-label>To</mat-label>
+        <input matInput formControlName="destination" placeholder="City or port" />
+      </mat-form-field>
+    </div>
+
+    <div
+      cdkOverlayOrigin
+      #datesOrigin="cdkOverlayOrigin"
+      class="grid min-w-0 cursor-pointer grid-cols-2 gap-0.5 sm:col-span-2 lg:col-span-1"
+      (click)="changeCalendarState(true)"
+      (focusin)="changeCalendarState(true)"
+      (focusout)="closeCalendarIfFocusLeft($event)"
+    >
+      <mat-form-field appearance="fill" subscriptSizing="dynamic" class="seg">
+        <mat-label>Start date</mat-label>
+        <input
+          matInput
+          readonly
+          appDateDisplay
+          placeholder="Add date"
+          class="cursor-pointer"
+          formControlName="startDate"
+        />
+      </mat-form-field>
+
+      <mat-form-field appearance="fill" subscriptSizing="dynamic" class="seg">
+        <mat-label>End date</mat-label>
+        <input
+          matInput
+          readonly
+          appDateDisplay
+          placeholder="Add date"
+          class="cursor-pointer"
+          formControlName="endDate"
+        />
+      </mat-form-field>
+    </div>
+
+    <mat-form-field
+      appearance="fill"
+      subscriptSizing="dynamic"
+      class="seg sm:col-span-2 lg:col-span-1"
+    >
+      <mat-label>Suppliers</mat-label>
+      <mat-select
+        multiple
+        formControlName="suppliers"
+        [placeholder]="hasSuppliersError() ? 'Unavailable' : 'Select suppliers'"
+      >
+        <mat-select-trigger>
+          @if (form.controls.suppliers.value.length === suppliers().length) {
+            All suppliers
+          } @else {
+            {{ form.controls.suppliers.value.length }} of {{ suppliers().length }}
+          }
+        </mat-select-trigger>
+        @for (supplier of suppliers(); track supplier.id) {
+          <mat-option [value]="supplier">{{ supplier.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <ng-template
+    cdkConnectedOverlay
+    cdkConnectedOverlayPush
+    cdkConnectedOverlayHasBackdrop
+    cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop"
+    [cdkConnectedOverlayOrigin]="datesOrigin"
+    [cdkConnectedOverlayOpen]="isCalendarOpen()"
+    (detach)="changeCalendarState(false)"
+    (backdropClick)="changeCalendarState(false)"
+  >
+    <div
+      #calendarPanel
+      tabindex="-1"
+      class="calendar-panel"
+      (focusout)="closeCalendarIfFocusLeft($event)"
+    >
+      <mat-calendar [selected]="selectedRange()" (selectedChange)="selectDate($event)" />
+    </div>
+  </ng-template>
+
+  <button mat-flat-button type="submit" class="search-btn w-full lg:w-auto">Search</button>
+</form>

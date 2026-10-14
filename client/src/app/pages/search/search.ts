@@ -1,110 +1,17 @@
-import { catchError, of, tap } from 'rxjs';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatButtonModule } from '@angular/material/button';
-import { ErrorStateMatcher } from '@angular/material/core';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { Component, computed, inject, signal } from '@angular/core';
-import { CdkConnectedOverlay, CdkOverlayOrigin } from '@angular/cdk/overlay';
-import {
-  AbstractControl,
-  FormGroupDirective,
-  NonNullableFormBuilder,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
-import {
-  DateRange,
-  DefaultMatCalendarRangeStrategy,
-  MAT_DATE_RANGE_SELECTION_STRATEGY,
-  MatCalendar,
-} from '@angular/material/datepicker';
+import { Component, computed, inject } from '@angular/core';
 
-import { DateDisplay } from './date-display';
-import { Supplier } from '../../models/supplier';
-import { SuppliersService } from '../../service/suppliers';
-
-class ShowOnSubmitErrorStateMatcher implements ErrorStateMatcher {
-  isErrorState(control: AbstractControl | null, form: FormGroupDirective | null): boolean {
-    return !!control?.invalid && !!form?.submitted;
-  }
-}
+import { Hero } from './hero/hero';
+import { Results } from './results/results';
+import { SearchService } from '@/app/service/search';
+import { SearchForm } from './search-form/search-form';
 
 @Component({
-  imports: [
-    DateDisplay,
-    MatCalendar,
-    MatInputModule,
-    MatButtonModule,
-    MatSelectModule,
-    CdkOverlayOrigin,
-    MatFormFieldModule,
-    CdkConnectedOverlay,
-    ReactiveFormsModule,
-  ],
-  providers: [
-    { provide: MAT_DATE_RANGE_SELECTION_STRATEGY, useClass: DefaultMatCalendarRangeStrategy },
-    { provide: ErrorStateMatcher, useClass: ShowOnSubmitErrorStateMatcher },
-  ],
+  imports: [Hero, Results, SearchForm],
   selector: 'app-search',
-  styleUrl: './search.css',
   templateUrl: './search.html',
 })
 export class Search {
-  private readonly suppliersService = inject(SuppliersService);
-  private readonly fb = inject(NonNullableFormBuilder);
+  private readonly searchService = inject(SearchService);
 
-  readonly form = this.fb.group({
-    source: ['', Validators.required],
-    destination: ['', Validators.required],
-    startDate: [null as Date | null, Validators.required],
-    endDate: [null as Date | null, Validators.required],
-    suppliers: [[] as Supplier[], Validators.required],
-  });
-
-  readonly isCalendarOpen = signal(false);
-  protected readonly hasSuppliersError = signal(false);
-  protected readonly suppliers = toSignal(
-    this.suppliersService.getAll().pipe(
-      tap((availableSuppliers) => this.form.controls.suppliers.setValue(availableSuppliers)),
-      catchError(() => {
-        this.hasSuppliersError.set(true);
-        return of([]);
-      }),
-    ),
-    { initialValue: [] },
-  );
-  protected readonly startDate = toSignal(this.form.controls.startDate.valueChanges, {
-    initialValue: null,
-  });
-  protected readonly endDate = toSignal(this.form.controls.endDate.valueChanges, {
-    initialValue: null,
-  });
-  protected readonly selectedRange = computed(
-    () => new DateRange(this.startDate(), this.endDate()),
-  );
-
-  submit() {}
-
-  changeCalendarState(newState: boolean) {
-    this.isCalendarOpen.set(newState);
-  }
-
-  selectDate(date: Date | null): void {
-    if (!date) return;
-
-    const { startDate, endDate } = this.form.controls;
-    const isStartingNewRange =
-      !startDate.value || endDate.value !== null || date.getTime() < startDate.value.getTime();
-
-    if (isStartingNewRange) {
-      startDate.setValue(date);
-      endDate.setValue(null);
-      return;
-    }
-
-    endDate.setValue(date);
-    this.changeCalendarState(false);
-  }
+  protected readonly hasSearched = computed(() => this.searchService.request() !== null);
 }

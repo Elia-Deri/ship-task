@@ -109,11 +109,12 @@ Reject vague prompts.
 ## FORMATTING
 
 - Exactly one blank line between logical blocks.
-- Exactly one blank line after import groups.
+- Imports form two blocks: library imports, then own-code imports. Exactly one blank line between the two blocks and one after the last import. No blank lines inside a block.
 - No stacked blank lines.
-- TypeScript import groups: `@angular/*` → other external packages (`rxjs`, …) → app code (relative), blank line between groups.
-- C# `using` groups: `System*` → `Microsoft*` → other external → project namespaces, blank line between groups.
-- Within each import group, sort lines **ascending by line length** (short → long).
+- TypeScript import order: `@angular/*` → other external packages (`rxjs`, …) in the library block, then app code in the own-code block.
+- App code imports: `./` for same-folder siblings and their subfolders; `@/…` (→ `client/src/…`) for everything else. Never `../`.
+- C# `using` order: `System*` → `Microsoft*` → other external in the library block, then project namespaces in the own-code block.
+- Within each group (e.g. `@angular/*`, other external, own code), sort lines **ascending by line length** (short → long).
 - Code must pass Prettier (`client/.prettierrc`), `ng build` with no warnings, and `dotnet build` with no warnings / `dotnet format --verify-no-changes`.
 - Formatting violations are errors.
 
@@ -175,7 +176,7 @@ Reject vague prompts.
 
 ## DATA / EF CORE (SQLite)
 
-- Money as integer minor units (`long PriceMinor`). SQLite has no native decimal; EF cannot `ORDER BY` a `decimal` column there.
+- Money as integer minor units in a `long`, named plainly with no unit suffix (`Price`, `BasePrice`; TS `price`). Every amount in the codebase is minor units; only the UI divides by 100. SQLite has no native decimal; EF cannot `ORDER BY` a `decimal` column there.
 - Timestamps as UTC `DateTime`. EF SQLite cannot translate `ORDER BY` / comparisons on `DateTimeOffset`.
 - Search-date fields (from / to date) as `DateOnly`.
 - Response time as integer milliseconds (`int ResponseTimeMs`).

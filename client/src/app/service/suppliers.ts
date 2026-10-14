@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 
 import { map, Observable } from 'rxjs';
 
-import { isSupplierList, Supplier } from '../models/supplier';
+import { isSupplierList, Supplier } from '@/app/models/supplier';
 
 @Service()
 export class SuppliersService {

@@ -1,0 +1,50 @@
+/* curved "cut-out" bottom edge of the hero */
+.hero {
+  clip-path: ellipse(140% 100% at 50% 0%);
+  transition:
+    min-height 400ms ease,
+    padding 400ms ease;
+}
+
+.hero.compact {
+  min-height: 0;
+  padding-block: 1.25rem;
+  clip-path: none;
+}
+
+.hero.compact .route {
+  display: none;
+}
+
+.glow {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(80px);
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.top-right-glow {
+  width: clamp(320px, 32vw, 760px);
+  aspect-ratio: 1;
+  background: #0ea5e9;
+  top: -12vw;
+  right: -6vw;
+}
+
+.bottom-left-glow {
+  width: clamp(260px, 24vw, 580px);
+  aspect-ratio: 1;
+  background: #6366f1;
+  bottom: -10vw;
+  left: 10%;
+}
+
+.route {
+  position: absolute;
+  top: clamp(24px, 4vw, 96px);
+  right: 6%;
+  width: clamp(300px, 30vw, 680px);
+  color: rgb(56 189 248 / 0.5);
+  pointer-events: none;
+}

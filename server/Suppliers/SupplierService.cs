@@ -5,7 +5,7 @@ using ShipTask.Api.Data.Entities;
 
 namespace ShipTask.Api.Suppliers;
 
-public class SupplierService(PriceHuntDbContext db)
+public class SupplierService(PriceHuntDbContext db, TimeProvider timeProvider)
 {
     private sealed record SupplierSeed(string Name, SupplierBehavior Behavior = SupplierBehavior.Normal);
 
@@ -39,6 +39,12 @@ public class SupplierService(PriceHuntDbContext db)
 
     public Task<List<SupplierDto>> GetAllAsync(CancellationToken ct)
     {
-        return db.Suppliers.OrderBy(s => s.Id).Select(s => new SupplierDto(s.Id, s.Name)).ToListAsync(ct);
+        return db.Suppliers.AsNoTracking().OrderBy(s => s.Id).Select(s => new SupplierDto(s.Id, s.Name)).ToListAsync(ct);
+    }
+
+    public async Task<List<ISupplier>> GetByIdsAsync(int[] ids, CancellationToken ct)
+    {
+        var rows = await db.Suppliers.AsNoTracking().Where(s => ids.Contains(s.Id)).ToListAsync(ct);
+        return [.. rows.Select(row => new SimulatedSupplier(row, timeProvider))];
     }
 }
