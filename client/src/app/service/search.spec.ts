@@ -14,10 +14,10 @@ const request: SearchRequest = {
   supplierIds: [1, 2, 3],
 };
 
-function quote(supplierId: number, priceMinor: number): SearchEvent {
+function quote(supplierId: number, price: number): SearchEvent {
   return {
     type: 'quote',
-    quote: { supplierId, supplierName: `Supplier ${supplierId}`, priceMinor },
+    quote: { supplierId, supplierName: `Supplier ${supplierId}`, price },
   };
 }
 

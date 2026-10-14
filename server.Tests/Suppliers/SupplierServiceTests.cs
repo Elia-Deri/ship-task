@@ -89,7 +89,7 @@ public sealed class SupplierServiceTests : IDisposable
     private async Task ValidateSupplierListAsync()
     {
         await using var db = CreateContext();
-        await new SupplierService(db).ValidateSupplierListAsync(CancellationToken.None);
+        await new SupplierService(db, TimeProvider.System).ValidateSupplierListAsync(CancellationToken.None);
     }
 
     private async Task<List<int>> LoadIdsAsync()

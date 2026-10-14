@@ -3,7 +3,13 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ApplicationRef, computed, DOCUMENT, inject, Service, signal } from '@angular/core';
 
 import { SearchStream } from './search-stream';
-import { SearchEvent, SearchRequest, SearchStatus, SupplierQuote } from '@/app/models/search';
+import {
+  SearchEvent,
+  SearchRequest,
+  SearchStatus,
+  SupplierFailure,
+  SupplierQuote,
+} from '@/app/models/search';
 
 @Service()
 export class SearchService {
@@ -12,15 +18,17 @@ export class SearchService {
   private readonly appRef = inject(ApplicationRef);
   private readonly requests = new Subject<SearchRequest>();
   private readonly quotes = signal<SupplierQuote[]>([]);
-  private readonly failedCount = signal(0);
+  private readonly failedSuppliers = signal<SupplierFailure[]>([]);
 
   readonly request = signal<SearchRequest | null>(null);
   readonly status = signal<SearchStatus | null>(null);
+  readonly failures = this.failedSuppliers.asReadonly();
 
   readonly results = computed(() =>
-    [...this.quotes()].sort((a, b) => a.priceMinor - b.priceMinor || a.supplierId - b.supplierId),
+    [...this.quotes()].sort((a, b) => a.price - b.price || a.supplierId - b.supplierId),
   );
   readonly requestedCount = computed(() => this.request()?.supplierIds.length ?? 0);
+  readonly failedCount = computed(() => this.failedSuppliers().length);
   readonly respondedCount = computed(() => this.quotes().length + this.failedCount());
   readonly pendingCount = computed(() =>
     this.status() === 'running' ? this.requestedCount() - this.respondedCount() : 0,
@@ -45,7 +53,7 @@ export class SearchService {
   search(request: SearchRequest): void {
     this.request.set(request);
     this.quotes.set([]);
-    this.failedCount.set(0);
+    this.failedSuppliers.set([]);
     this.status.set('running');
     this.requests.next(request);
   }
@@ -58,7 +66,12 @@ export class SearchService {
         this.animate(() => this.quotes.update((quotes) => [...quotes, event.quote]));
         return;
       case 'failed':
-        this.animate(() => this.failedCount.update((count) => count + 1));
+        this.animate(() =>
+          this.failedSuppliers.update((failures) => [
+            ...failures,
+            { supplierId: event.supplierId, supplierName: event.supplierName },
+          ]),
+        );
         return;
       case 'ended':
         this.animate(() => this.status.set(event.status));

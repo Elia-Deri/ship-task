@@ -176,7 +176,7 @@ Reject vague prompts.
 
 ## DATA / EF CORE (SQLite)
 
-- Money as integer minor units (`long PriceMinor`). SQLite has no native decimal; EF cannot `ORDER BY` a `decimal` column there.
+- Money as integer minor units in a `long`, named plainly with no unit suffix (`Price`, `BasePrice`; TS `price`). Every amount in the codebase is minor units; only the UI divides by 100. SQLite has no native decimal; EF cannot `ORDER BY` a `decimal` column there.
 - Timestamps as UTC `DateTime`. EF SQLite cannot translate `ORDER BY` / comparisons on `DateTimeOffset`.
 - Search-date fields (from / to date) as `DateOnly`.
 - Response time as integer milliseconds (`int ResponseTimeMs`).
