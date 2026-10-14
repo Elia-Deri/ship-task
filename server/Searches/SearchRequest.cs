@@ -1,5 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 
+using ShipTask.Api.Locations;
+
 namespace ShipTask.Api.Searches;
 
 public record SearchRequest : IValidatableObject
@@ -18,6 +20,12 @@ public record SearchRequest : IValidatableObject
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
+        if (!LocationCatalog.IsKnown(Source))
+            yield return new ValidationResult("Source must be one of the known locations.", [nameof(Source)]);
+
+        if (!LocationCatalog.IsKnown(Destination))
+            yield return new ValidationResult("Destination must be one of the known locations.", [nameof(Destination)]);
+
         if (!IsUtcMidnight(StartDate))
             yield return new ValidationResult("Start date must be a UTC midnight timestamp in milliseconds.", [nameof(StartDate)]);
 
@@ -26,9 +34,6 @@ public record SearchRequest : IValidatableObject
 
         if (StartDate > EndDate)
             yield return new ValidationResult("Start date must be on or before end date.", [nameof(StartDate), nameof(EndDate)]);
-
-        if (string.Equals(Source.Trim(), Destination.Trim(), StringComparison.OrdinalIgnoreCase))
-            yield return new ValidationResult("Source and destination must differ.", [nameof(Destination)]);
 
         if (SupplierIds.Distinct().Count() != SupplierIds.Length)
             yield return new ValidationResult("Supplier ids must be unique.", [nameof(SupplierIds)]);

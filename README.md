@@ -24,6 +24,7 @@ _TBD_
 
 - **.NET 10 and Angular 22.** This is my first .NET and Angular project, so I had no version preferences and used the latest releases.
 - **Config in files, not environment variables.** To meet the no-setup requirement, the SQLite connection string and the allowed client origin (CORS) live in `server/appsettings.json`, and the client's API URL is a constant in the code. In a real app I'd move all three to environment variables.
+- **Preset locations instead of a places API.** A real app would get cities and ports from a third-party API, but every reliable one needs an API key, which breaks the no-setup rule. Instead, the server serves a list of 50 AI-generated cities and ports (`GET /api/locations`), and the from / to fields autocomplete from it.
 
 ## What I would do differently
 

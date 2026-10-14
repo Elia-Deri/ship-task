@@ -12,8 +12,8 @@ public class SearchRequestTests
 
     private static readonly SearchRequest ValidRequest = new()
     {
-        Source = "Haifa",
-        Destination = "Rotterdam",
+        Source = "Port of Haifa, Israel",
+        Destination = "Port of Rotterdam, Netherlands",
         StartDate = October14,
         EndDate = October14 + 6 * DayMs,
         SupplierIds = [1, 2, 3],
@@ -25,7 +25,10 @@ public class SearchRequestTests
         { nameof(SearchRequest.SupplierIds), ValidRequest with { SupplierIds = null! } },
         { nameof(SearchRequest.SupplierIds), ValidRequest with { SupplierIds = [1, 1] } },
         { nameof(SearchRequest.Source), ValidRequest with { Source = "   " } },
-        { nameof(SearchRequest.Destination), ValidRequest with { Destination = " haifa " } },
+        { nameof(SearchRequest.Destination), ValidRequest with { Destination = " port of haifa, israel " } },
+        { nameof(SearchRequest.Source), ValidRequest with { Source = "Haifa" } },
+        { nameof(SearchRequest.Source), ValidRequest with { Source = "port of haifa, israel" } },
+        { nameof(SearchRequest.Destination), ValidRequest with { Destination = "Atlantis" } },
         { nameof(SearchRequest.StartDate), ValidRequest with { StartDate = October14 + 1 } },
         // Israel midnight in October (UTC+3), what a client sending date.getTime() would produce.
         { nameof(SearchRequest.StartDate), ValidRequest with { StartDate = October14 - 3 * 60 * 60 * 1000 } },
@@ -37,6 +40,12 @@ public class SearchRequestTests
     public void Validate_ValidRequest_HasNoErrors()
     {
         Assert.Empty(Validate(ValidRequest));
+    }
+
+    [Fact]
+    public void Validate_SameSourceAndDestination_HasNoErrors()
+    {
+        Assert.Empty(Validate(ValidRequest with { Destination = ValidRequest.Source }));
     }
 
     [Fact]

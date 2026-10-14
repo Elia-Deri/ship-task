@@ -9,7 +9,17 @@
     <div class="relative grid min-w-0 grid-cols-1 gap-0.5 sm:col-span-2 sm:grid-cols-2">
       <mat-form-field appearance="fill" subscriptSizing="dynamic" class="seg route-from">
         <mat-label>From</mat-label>
-        <input matInput formControlName="source" placeholder="City or port" />
+        <input
+          matInput
+          formControlName="source"
+          placeholder="City or port"
+          [matAutocomplete]="sourceAutocomplete"
+        />
+        <mat-autocomplete #sourceAutocomplete="matAutocomplete">
+          @for (location of sourceOptions(); track location) {
+            <mat-option [value]="location">{{ location }}</mat-option>
+          }
+        </mat-autocomplete>
       </mat-form-field>
 
       <button
@@ -23,7 +33,17 @@
 
       <mat-form-field appearance="fill" subscriptSizing="dynamic" class="seg route-to">
         <mat-label>To</mat-label>
-        <input matInput formControlName="destination" placeholder="City or port" />
+        <input
+          matInput
+          formControlName="destination"
+          placeholder="City or port"
+          [matAutocomplete]="destinationAutocomplete"
+        />
+        <mat-autocomplete #destinationAutocomplete="matAutocomplete">
+          @for (location of destinationOptions(); track location) {
+            <mat-option [value]="location">{{ location }}</mat-option>
+          }
+        </mat-autocomplete>
       </mat-form-field>
     </div>
 
