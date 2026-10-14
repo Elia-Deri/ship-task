@@ -32,6 +32,8 @@
       #datesOrigin="cdkOverlayOrigin"
       class="grid min-w-0 cursor-pointer grid-cols-2 gap-0.5 sm:col-span-2 lg:col-span-1"
       (click)="changeCalendarState(true)"
+      (focusin)="changeCalendarState(true)"
+      (focusout)="closeCalendarIfFocusLeft($event)"
     >
       <mat-form-field appearance="fill" subscriptSizing="dynamic" class="seg">
         <mat-label>Start date</mat-label>
@@ -93,7 +95,12 @@
     (detach)="changeCalendarState(false)"
     (backdropClick)="changeCalendarState(false)"
   >
-    <div class="calendar-panel">
+    <div
+      #calendarPanel
+      tabindex="-1"
+      class="calendar-panel"
+      (focusout)="closeCalendarIfFocusLeft($event)"
+    >
       <mat-calendar [selected]="selectedRange()" (selectedChange)="selectDate($event)" />
     </div>
   </ng-template>

@@ -103,6 +103,30 @@ describe('SearchForm', () => {
     expect(component.form.controls.destination.value).toBe('Haifa');
   });
 
+  it('opens the calendar on focus and keeps it open while moving between the dates', async () => {
+    httpTesting.expectOne('/suppliers').flush([]);
+    await fixture.whenStable();
+    const element = fixture.nativeElement as HTMLElement;
+    const startInput = element.querySelector<HTMLInputElement>(
+      'input[formControlName="startDate"]',
+    );
+    const endInput = element.querySelector<HTMLInputElement>('input[formControlName="endDate"]');
+    const sourceInput = element.querySelector<HTMLInputElement>('input[formControlName="source"]');
+
+    startInput?.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+    expect(component.isCalendarOpen()).toBe(true);
+
+    startInput?.dispatchEvent(
+      new FocusEvent('focusout', { bubbles: true, relatedTarget: endInput }),
+    );
+    expect(component.isCalendarOpen()).toBe(true);
+
+    endInput?.dispatchEvent(
+      new FocusEvent('focusout', { bubbles: true, relatedTarget: sourceInput }),
+    );
+    expect(component.isCalendarOpen()).toBe(false);
+  });
+
   it('shows the selected dates formatted', async () => {
     httpTesting.expectOne('/suppliers').flush([]);
 

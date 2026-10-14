@@ -5,9 +5,9 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { Component, computed, inject, signal } from '@angular/core';
 import { CdkConnectedOverlay, CdkOverlayOrigin } from '@angular/cdk/overlay';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, computed, ElementRef, inject, signal, viewChild } from '@angular/core';
 import {
   DateRange,
   DefaultMatCalendarRangeStrategy,
@@ -46,6 +46,8 @@ export class SearchForm {
   private readonly searchService = inject(SearchService);
   private readonly suppliersService = inject(SuppliersService);
   private readonly fb = inject(NonNullableFormBuilder);
+  private readonly datesOrigin = viewChild.required('datesOrigin', { read: CdkOverlayOrigin });
+  private readonly calendarPanel = viewChild<ElementRef<HTMLElement>>('calendarPanel');
 
   readonly form = this.fb.group({
     source: ['', Validators.required],
@@ -93,6 +95,16 @@ export class SearchForm {
   swapRoute(): void {
     const { source, destination } = this.form.controls;
     this.form.patchValue({ source: destination.value, destination: source.value });
+  }
+
+  closeCalendarIfFocusLeft(event: FocusEvent): void {
+    const nextFocus = event.relatedTarget;
+    const isFocusStaying =
+      nextFocus instanceof Node &&
+      (this.datesOrigin().elementRef.nativeElement.contains(nextFocus) ||
+        !!this.calendarPanel()?.nativeElement.contains(nextFocus));
+
+    if (!isFocusStaying) this.changeCalendarState(false);
   }
 
   changeCalendarState(newState: boolean) {
