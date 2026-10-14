@@ -92,6 +92,17 @@ describe('SearchForm', () => {
     expect(search).not.toHaveBeenCalled();
   });
 
+  it('swaps the origin and destination', async () => {
+    httpTesting.expectOne('/suppliers').flush([]);
+    await fixture.whenStable();
+    component.form.patchValue({ source: 'Haifa', destination: 'Rotterdam' });
+
+    (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('.swap-btn')?.click();
+
+    expect(component.form.controls.source.value).toBe('Rotterdam');
+    expect(component.form.controls.destination.value).toBe('Haifa');
+  });
+
   it('shows the selected dates formatted', async () => {
     httpTesting.expectOne('/suppliers').flush([]);
 

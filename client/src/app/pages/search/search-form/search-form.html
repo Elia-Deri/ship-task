@@ -6,15 +6,26 @@
   <div
     class="segments grid grid-cols-1 gap-0.5 overflow-hidden rounded-2xl shadow-2xl sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1.6fr_1.2fr]"
   >
-    <mat-form-field appearance="fill" subscriptSizing="dynamic" class="seg">
-      <mat-label>From</mat-label>
-      <input matInput formControlName="source" placeholder="City or port" />
-    </mat-form-field>
+    <div class="relative grid min-w-0 grid-cols-1 gap-0.5 sm:col-span-2 sm:grid-cols-2">
+      <mat-form-field appearance="fill" subscriptSizing="dynamic" class="seg route-from">
+        <mat-label>From</mat-label>
+        <input matInput formControlName="source" placeholder="City or port" />
+      </mat-form-field>
 
-    <mat-form-field appearance="fill" subscriptSizing="dynamic" class="seg">
-      <mat-label>To</mat-label>
-      <input matInput formControlName="destination" placeholder="City or port" />
-    </mat-form-field>
+      <button
+        type="button"
+        class="swap-btn"
+        aria-label="Swap origin and destination"
+        (click)="swapRoute()"
+      >
+        <span class="material-symbols-outlined">swap_horiz</span>
+      </button>
+
+      <mat-form-field appearance="fill" subscriptSizing="dynamic" class="seg route-to">
+        <mat-label>To</mat-label>
+        <input matInput formControlName="destination" placeholder="City or port" />
+      </mat-form-field>
+    </div>
 
     <div
       cdkOverlayOrigin

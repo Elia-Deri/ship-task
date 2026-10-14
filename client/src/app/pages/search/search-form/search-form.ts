@@ -90,6 +90,11 @@ export class SearchForm {
     });
   }
 
+  swapRoute(): void {
+    const { source, destination } = this.form.controls;
+    this.form.patchValue({ source: destination.value, destination: source.value });
+  }
+
   changeCalendarState(newState: boolean) {
     this.isCalendarOpen.set(newState);
   }

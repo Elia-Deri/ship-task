@@ -21,6 +21,64 @@
   box-shadow: inset 0 0 0 2px #0ea5e9;
 }
 
+.swap-btn {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  right: 1rem;
+  translate: 0 -50%;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 4px solid #0b1f3a;
+  border-radius: 9999px;
+  background: white;
+  color: #0b1f3a;
+  box-shadow: 0 2px 6px rgb(11 31 58 / 0.15);
+  cursor: pointer;
+  transition: background-color 150ms;
+}
+
+.swap-btn:hover {
+  background: #e2e8f0;
+}
+
+.swap-btn:focus-visible {
+  outline: 2px solid #0ea5e9;
+  outline-offset: 2px;
+}
+
+.swap-btn .material-symbols-outlined {
+  rotate: 90deg;
+}
+
+.route-from,
+.route-to {
+  padding-right: 3rem;
+}
+
+@media (width >= 40rem) {
+  .swap-btn {
+    right: auto;
+    left: 50%;
+    translate: -50% -50%;
+  }
+
+  .swap-btn .material-symbols-outlined {
+    rotate: 0deg;
+  }
+
+  .route-from {
+    padding-right: 1.25rem;
+  }
+
+  .route-to {
+    padding-right: 0;
+    padding-left: 1.25rem;
+  }
+}
+
 .calendar-panel {
   width: clamp(260px, min(20vw, 36vh), 320px);
   max-width: calc(100vw - 2rem);
