@@ -1,6 +1,0 @@
-@ShipTask.Api_HostAddress = http://localhost:5298
-
-GET {{ShipTask.Api_HostAddress}}/api/suppliers
-Accept: application/json
-
-###

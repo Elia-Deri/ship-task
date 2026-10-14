@@ -2,6 +2,8 @@ using System.Text;
 using System.Buffers.Binary;
 using System.Security.Cryptography;
 
+namespace ShipTask.Api.Suppliers;
+
 public static class PriceGenerator
 {
     private const long MinBasePrice = 50_00;

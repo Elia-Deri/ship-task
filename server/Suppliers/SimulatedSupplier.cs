@@ -5,6 +5,7 @@ namespace ShipTask.Api.Suppliers;
 public class SimulatedSupplier(Supplier supplier, TimeProvider timeProvider) : ISupplier
 {
     public int Id => supplier.Id;
+
     public string Name => supplier.Name;
 
     public async Task<long> GetOfferAsync(long basePrice, CancellationToken ct)
@@ -24,5 +25,4 @@ public class SimulatedSupplier(Supplier supplier, TimeProvider timeProvider) : I
 
         return PriceGenerator.GetOfferPrice(basePrice);
     }
-
 }

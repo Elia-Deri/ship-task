@@ -11,8 +11,7 @@ public class SearchService(SearchStore searchStore, TimeProvider timeProvider, I
     public async IAsyncEnumerable<SearchEvent> RunAsync(
         SearchRequest request,
         IReadOnlyList<ISupplier> suppliers,
-        [EnumeratorCancellation] CancellationToken ct
-        )
+        [EnumeratorCancellation] CancellationToken ct)
     {
         using var timeoutCts = new CancellationTokenSource(_searchTimeout, timeProvider);
         using var searchCts = CancellationTokenSource.CreateLinkedTokenSource(ct, timeoutCts.Token);
@@ -53,8 +52,7 @@ public class SearchService(SearchStore searchStore, TimeProvider timeProvider, I
         ISupplier supplier,
         long basePrice,
         CancellationToken searchCT,
-        CancellationToken requestCT
-        )
+        CancellationToken requestCT)
     {
         var startTimestamp = timeProvider.GetTimestamp();
         long? offerPrice = null;

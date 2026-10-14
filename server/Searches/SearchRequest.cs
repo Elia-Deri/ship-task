@@ -14,6 +14,7 @@ public record SearchRequest : IValidatableObject
     public required string Destination { get; init; }
 
     public required long StartDate { get; init; }
+
     public required long EndDate { get; init; }
 
     [Required, MinLength(1)]
