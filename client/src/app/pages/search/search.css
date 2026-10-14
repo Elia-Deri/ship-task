@@ -1,0 +1,89 @@
+/* curved "cut-out" bottom edge of the hero */
+.hero {
+  clip-path: ellipse(140% 100% at 50% 0%);
+}
+
+.glow {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(80px);
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.top-right-glow {
+  width: clamp(320px, 32vw, 760px);
+  aspect-ratio: 1;
+  background: #0ea5e9;
+  top: -12vw;
+  right: -6vw;
+}
+
+.bottom-left-glow {
+  width: clamp(260px, 24vw, 580px);
+  aspect-ratio: 1;
+  background: #6366f1;
+  bottom: -10vw;
+  left: 10%;
+}
+
+.route {
+  position: absolute;
+  top: clamp(24px, 4vw, 96px);
+  right: 6%;
+  width: clamp(300px, 30vw, 680px);
+  color: rgb(56 189 248 / 0.5);
+  pointer-events: none;
+}
+
+.segments {
+  --mat-form-field-filled-container-color: transparent;
+  --mat-form-field-filled-active-indicator-height: 0;
+  --mat-form-field-filled-focus-active-indicator-height: 0;
+  --mat-form-field-hover-state-layer-opacity: 0;
+  --mat-form-field-focus-state-layer-opacity: 0;
+}
+
+.seg {
+  min-width: 0;
+  background: white;
+  padding-block: 6px;
+  transition: background-color 150ms;
+}
+
+.seg:hover {
+  background: #f1f5f9;
+}
+
+.seg:focus-within {
+  box-shadow: inset 0 0 0 2px #0ea5e9;
+}
+
+.calendar-panel {
+  width: clamp(260px, min(20vw, 36vh), 320px);
+  max-width: calc(100vw - 2rem);
+  margin-block: 8px;
+  border-radius: 1rem;
+  background: white;
+  box-shadow: 0 20px 40px rgb(11 31 58 / 0.25);
+}
+
+.search-btn {
+  height: 68px;
+  padding: 0 1.5rem;
+  font-size: 1rem;
+  border-radius: 1rem;
+}
+
+@media (width >= 80rem) {
+  .search-btn {
+    padding: 0 2.5rem;
+  }
+}
+
+@media (width >= 96rem) {
+  .search-btn {
+    padding: 0 3.5rem;
+    font-size: 1.125rem;
+  }
+}

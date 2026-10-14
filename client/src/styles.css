@@ -1,5 +1,9 @@
 @import 'tailwindcss';
 
+.segments .mat-mdc-form-field-infix {
+  width: auto;
+}
+
 @utility page-container {
   width: 100%;
   margin-inline: auto;
