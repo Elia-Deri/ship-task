@@ -30,8 +30,12 @@ public class SupplierService(PriceHuntDbContext db, TimeProvider timeProvider)
 
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
 
-        // TODO: delete supplier history before suppliers once that table exists, or the foreign key blocks this delete.
+        // Reseeding changes supplier ids, so existing history would point at the wrong suppliers.
+        // Responses go first: the supplier foreign key is Restrict.
+        await db.SupplierResponses.ExecuteDeleteAsync(ct);
+        await db.Searches.ExecuteDeleteAsync(ct);
         await db.Suppliers.ExecuteDeleteAsync(ct);
+
         db.Suppliers.AddRange(_defaultSuppliers.Select(d => new Supplier { Name = d.Name, Behavior = d.Behavior }));
         await db.SaveChangesAsync(ct);
         await transaction.CommitAsync(ct);

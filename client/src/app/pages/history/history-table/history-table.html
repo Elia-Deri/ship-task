@@ -1,0 +1,12 @@
+<ag-grid-angular
+  class="block size-full"
+  [modules]="modules"
+  [rowData]="rows()"
+  [loading]="isLoading()"
+  [columnDefs]="columnDefs"
+  [defaultColDef]="defaultColDef"
+  [getRowId]="getRowId"
+  [pagination]="true"
+  [paginationAutoPageSize]="true"
+  overlayNoRowsTemplate="No searches match these filters."
+/>

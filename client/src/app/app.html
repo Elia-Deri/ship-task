@@ -1,8 +1,21 @@
 <header class="bg-[#0b1f3a] text-white">
-  <div class="page-container flex h-16 items-center 2xl:h-20">
-    <a routerLink="/" class="flex items-center gap-2 text-xl font-semibold tracking-tight 2xl:text-2xl">
+  <div class="page-container flex h-16 items-center gap-4 2xl:h-20">
+    <a
+      routerLink="/"
+      class="flex items-center gap-2 text-xl font-semibold tracking-tight 2xl:text-2xl"
+    >
       <span class="material-symbols-outlined text-sky-400">local_shipping</span>
       PriceHunt
+    </a>
+    <a
+      routerLink="/history"
+      routerLinkActive="bg-white/15 text-white"
+      ariaCurrentWhenActive="page"
+      aria-label="Search history"
+      title="Search history"
+      class="grid size-10 place-items-center rounded-full text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
+    >
+      <span class="material-symbols-outlined">history</span>
     </a>
   </div>
 </header>

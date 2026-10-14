@@ -1,15 +1,9 @@
 import { FormControl } from '@angular/forms';
 import { firstValueFrom, Observable, of, throwError } from 'rxjs';
 
-import { knownLocationValidator, toUtcMidnight } from './utils';
+import { knownLocationValidator } from './utils';
 
 const LOCATIONS = ['Port of Haifa, Israel', 'Haifa Bay, Israel'];
-
-describe('toUtcMidnight', () => {
-  it('keeps the picked calendar day regardless of the local time', () => {
-    expect(toUtcMidnight(new Date(2026, 9, 14, 23, 30))).toBe(Date.UTC(2026, 9, 14));
-  });
-});
 
 describe('knownLocationValidator', () => {
   let search: ReturnType<typeof vi.fn<(query: string) => Observable<string[]>>>;

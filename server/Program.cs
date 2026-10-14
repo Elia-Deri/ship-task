@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 
 using ShipTask.Api.Data;
+using ShipTask.Api.History;
 using ShipTask.Api.Searches;
 using ShipTask.Api.Suppliers;
 
@@ -15,11 +16,11 @@ builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>
     policy.WithOrigins(clientOrigin).AllowAnyHeader().AllowAnyMethod()));
 
 builder.Services.AddDbContext<PriceHuntDbContext>(options => options.UseSqlite(connectionString));
-//TODO: remove after search history is saved to db.
-builder.Services.AddSingleton<SearchIdGenerator>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<SupplierService>();
 builder.Services.AddScoped<SearchService>();
+builder.Services.AddScoped<SearchStore>();
+builder.Services.AddScoped<HistoryService>();
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();

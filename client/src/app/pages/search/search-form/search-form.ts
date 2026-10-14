@@ -16,12 +16,13 @@ import {
   MatCalendar,
 } from '@angular/material/datepicker';
 
+import { toUtcMidnight } from '@/app/utils';
 import { DateDisplay } from './date-display';
 import { Supplier } from '@/app/models/supplier';
 import { SearchService } from '@/app/service/search';
+import { knownLocationValidator, ShowOnSubmitErrorStateMatcher } from './utils';
 import { SuppliersService } from '@/app/service/suppliers';
 import { LocationsService } from '@/app/service/locations';
-import { knownLocationValidator, ShowOnSubmitErrorStateMatcher, toUtcMidnight } from './utils';
 
 @Component({
   imports: [

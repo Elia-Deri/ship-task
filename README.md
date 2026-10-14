@@ -24,6 +24,7 @@ _TBD_
 
 - **.NET 10 and Angular 22.** This is my first .NET and Angular project, so I had no version preferences and used the latest releases.
 - **Config in files, not environment variables.** To meet the no-setup requirement, the SQLite connection string and the allowed client origin (CORS) live in `server/appsettings.json`, and the client's API URL is a constant in the code. In a real app I'd move all three to environment variables.
+- **History filtering on the server, sorting and paging in the browser.** The history filters (date range, suppliers, routes) are sent to the backend as query parameters, to mimic a production app where the full history is too large to send to the browser. The filtered rows are then sorted and paged client-side by AG Grid, which was much faster to build. At real scale I'd move sorting and paging to the server as well.
 - **Preset locations instead of a places API.** A real app would get cities and ports from a third-party API, but every reliable one needs an API key, which breaks the no-setup rule. Instead, the server serves a list of 50 AI-generated cities and ports (`GET /api/locations`), and the from / to fields autocomplete from it.
 
 ## What I would do differently

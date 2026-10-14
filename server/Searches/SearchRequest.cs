@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
+using ShipTask.Api.Common;
 using ShipTask.Api.Locations;
 
 namespace ShipTask.Api.Searches;
@@ -26,10 +27,10 @@ public record SearchRequest : IValidatableObject
         if (!LocationCatalog.IsKnown(Destination))
             yield return new ValidationResult("Destination must be one of the known locations.", [nameof(Destination)]);
 
-        if (!IsUtcMidnight(StartDate))
+        if (!UnixDate.IsUtcMidnight(StartDate))
             yield return new ValidationResult("Start date must be a UTC midnight timestamp in milliseconds.", [nameof(StartDate)]);
 
-        if (!IsUtcMidnight(EndDate))
+        if (!UnixDate.IsUtcMidnight(EndDate))
             yield return new ValidationResult("End date must be a UTC midnight timestamp in milliseconds.", [nameof(EndDate)]);
 
         if (StartDate > EndDate)
@@ -37,12 +38,5 @@ public record SearchRequest : IValidatableObject
 
         if (SupplierIds.Distinct().Count() != SupplierIds.Length)
             yield return new ValidationResult("Supplier ids must be unique.", [nameof(SupplierIds)]);
-    }
-
-    private static bool IsUtcMidnight(long unixMs)
-    {
-        return unixMs >= 0
-            && unixMs <= DateTimeOffset.MaxValue.ToUnixTimeMilliseconds()
-            && unixMs % (24 * 60 * 60 * 1000) == 0;
     }
 }

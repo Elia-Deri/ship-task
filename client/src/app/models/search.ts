@@ -1,3 +1,5 @@
+import { isRecord } from '@/app/utils';
+
 export interface SearchRequest {
   source: string;
   destination: string;
@@ -74,8 +76,4 @@ export function parseSearchEvent(value: unknown): SearchEvent {
   }
 
   throw new Error(`Invalid search event: ${JSON.stringify(value)}`);
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
 }

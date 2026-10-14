@@ -1,12 +1,15 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Time.Testing;
 using Microsoft.Extensions.Logging.Abstractions;
 
+using ShipTask.Api.Data;
 using ShipTask.Api.Searches;
 using ShipTask.Api.Suppliers;
+using ShipTask.Api.Data.Entities;
 
 namespace ShipTask.Api.Tests.Searches;
 
-public class SearchServiceTests
+public sealed class SearchServiceTests : IDisposable
 {
     private static readonly SearchRequest Request = new()
     {
@@ -18,6 +21,21 @@ public class SearchServiceTests
     };
 
     private readonly FakeTimeProvider _time = new();
+    private readonly SqliteTestDatabase _database = new();
+    private readonly PriceHuntDbContext _requestDb;
+
+    public SearchServiceTests()
+    {
+        _requestDb = _database.CreateContext();
+        _requestDb.Suppliers.AddRange(Enumerable.Range(1, 3).Select(id => new Supplier { Id = id, Name = $"Supplier {id}" }));
+        _requestDb.SaveChanges();
+    }
+
+    public void Dispose()
+    {
+        _requestDb.Dispose();
+        _database.Dispose();
+    }
 
     [Fact]
     public async Task RunAsync_AllSuppliersRespond_StreamsQuotesInCompletionOrderThenCompleted()
@@ -38,6 +56,11 @@ public class SearchServiceTests
 
         Assert.Equal(new SearchEnded(SearchStatus.Completed), await NextAsync(events));
         Assert.False(await events.MoveNextAsync());
+
+        var search = await LoadSearchAsync(started.SearchId);
+        Assert.Equal(SearchStatus.Completed, search.Status);
+        Assert.Equal(120_00, Assert.Single(search.Responses, r => r.SupplierId == 1).Price);
+        Assert.Equal(110_00, Assert.Single(search.Responses, r => r.SupplierId == 2).Price);
     }
 
     [Fact]
@@ -61,7 +84,7 @@ public class SearchServiceTests
     {
         var silentSupplier = NeverResponds(2);
         await using var events = StartSearch([RespondsAfter(1, TimeSpan.FromSeconds(1), 100_00), silentSupplier]);
-        await NextAsync(events);
+        var started = Assert.IsType<SearchStarted>(await NextAsync(events));
         Assert.IsType<SupplierQuoted>(await NextAfterAsync(events, TimeSpan.FromSeconds(1)));
 
         var moveNext = events.MoveNextAsync();
@@ -73,6 +96,12 @@ public class SearchServiceTests
         Assert.Equal(new SearchEnded(SearchStatus.TimedOut), events.Current);
         Assert.True(silentSupplier.ReceivedToken.IsCancellationRequested);
         Assert.False(await events.MoveNextAsync());
+
+        var search = await LoadSearchAsync(started.SearchId);
+        Assert.Equal(SearchStatus.TimedOut, search.Status);
+        var silentResponse = Assert.Single(search.Responses, r => r.SupplierId == 2);
+        Assert.Equal(SupplierResultStatus.TimedOut, silentResponse.Status);
+        Assert.Null(silentResponse.Price);
     }
 
     [Fact]
@@ -96,7 +125,7 @@ public class SearchServiceTests
         using var requestCts = new CancellationTokenSource();
         var silentSupplier = NeverResponds(2);
         var events = StartSearch([RespondsAfter(1, TimeSpan.FromSeconds(1), 100_00), silentSupplier], requestCts.Token);
-        await NextAsync(events);
+        var started = Assert.IsType<SearchStarted>(await NextAsync(events));
         await NextAfterAsync(events, TimeSpan.FromSeconds(1));
 
         await requestCts.CancelAsync();
@@ -104,13 +133,24 @@ public class SearchServiceTests
         // Real-time guard: a finally block that waits on an uncancelled supplier would hang here instead of failing.
         await events.DisposeAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(5));
         Assert.True(silentSupplier.ReceivedToken.IsCancellationRequested);
+
+        var search = await LoadSearchAsync(started.SearchId);
+        Assert.Equal(SearchStatus.Cancelled, search.Status);
+        Assert.Equal(SupplierResultStatus.Cancelled, Assert.Single(search.Responses, r => r.SupplierId == 2).Status);
     }
 
     private IAsyncEnumerator<SearchEvent> StartSearch(IReadOnlyList<ISupplier> suppliers, CancellationToken ct = default)
     {
-        var service = new SearchService(new SearchIdGenerator(), _time, NullLogger<SearchService>.Instance);
+        var service = new SearchService(new SearchStore(_requestDb, _time), _time, NullLogger<SearchService>.Instance);
 
         return service.RunAsync(Request, suppliers, ct).GetAsyncEnumerator();
+    }
+
+    private async Task<Search> LoadSearchAsync(int searchId)
+    {
+        await using var db = _database.CreateContext();
+
+        return await db.Searches.Include(s => s.Responses).SingleAsync(s => s.Id == searchId);
     }
 
     private static async Task<SearchEvent> NextAsync(IAsyncEnumerator<SearchEvent> events)

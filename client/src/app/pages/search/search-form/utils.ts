@@ -25,8 +25,3 @@ export class ShowOnSubmitErrorStateMatcher implements ErrorStateMatcher {
     return !!control?.invalid && !!form?.submitted;
   }
 }
-
-// The calendar yields local midnight; the server needs the same calendar day regardless of the browser's timezone.
-export function toUtcMidnight(date: Date): number {
-  return Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
-}
