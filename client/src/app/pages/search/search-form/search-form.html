@@ -14,6 +14,7 @@
           formControlName="source"
           placeholder="City or port"
           [matAutocomplete]="sourceAutocomplete"
+          (focus)="loadLocationOptions('source')"
         />
         <mat-autocomplete #sourceAutocomplete="matAutocomplete">
           @for (location of sourceOptions(); track location) {
@@ -38,6 +39,7 @@
           formControlName="destination"
           placeholder="City or port"
           [matAutocomplete]="destinationAutocomplete"
+          (focus)="loadLocationOptions('destination')"
         />
         <mat-autocomplete #destinationAutocomplete="matAutocomplete">
           @for (location of destinationOptions(); track location) {
@@ -108,12 +110,10 @@
   <ng-template
     cdkConnectedOverlay
     cdkConnectedOverlayPush
-    cdkConnectedOverlayHasBackdrop
-    cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop"
     [cdkConnectedOverlayOrigin]="datesOrigin"
     [cdkConnectedOverlayOpen]="isCalendarOpen()"
     (detach)="changeCalendarState(false)"
-    (backdropClick)="changeCalendarState(false)"
+    (overlayOutsideClick)="changeCalendarState(false)"
   >
     <div
       #calendarPanel

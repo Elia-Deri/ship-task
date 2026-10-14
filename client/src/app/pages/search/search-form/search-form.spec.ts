@@ -1,5 +1,6 @@
 import { NEVER, of } from 'rxjs';
 import { provideHttpClient } from '@angular/common/http';
+import { provideNativeDateAdapter } from '@angular/material/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 
@@ -21,6 +22,7 @@ describe('SearchForm', () => {
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
+        provideNativeDateAdapter(),
         { provide: SearchStream, useValue: { open: () => NEVER } },
         {
           provide: LocationsService,
@@ -90,6 +92,28 @@ describe('SearchForm', () => {
     });
   });
 
+  it('closes the calendar and searches when Search is clicked while the calendar is open', async () => {
+    httpTesting.expectOne('/suppliers').flush([{ id: 1, name: 'Cheetah' }]);
+    await fixture.whenStable();
+    const search = vi.spyOn(TestBed.inject(SearchService), 'search');
+    component.form.patchValue({
+      source: 'Port of Haifa, Israel',
+      destination: 'Port of Rotterdam, Netherlands',
+      startDate: new Date(2026, 9, 14),
+      endDate: new Date(2026, 9, 20),
+    });
+    await vi.waitFor(() => expect(component.form.valid).toBe(true));
+    component.changeCalendarState(true);
+    await fixture.whenStable();
+
+    (fixture.nativeElement as HTMLElement)
+      .querySelector<HTMLButtonElement>('button[type="submit"]')
+      ?.click();
+
+    expect(component.isCalendarOpen()).toBe(false);
+    expect(search).toHaveBeenCalledOnce();
+  });
+
   it('does not search while the form is invalid', async () => {
     httpTesting.expectOne('/suppliers').flush([{ id: 1, name: 'Cheetah' }]);
     await fixture.whenStable();
@@ -140,6 +164,23 @@ describe('SearchForm', () => {
 
     expect(component.form.status).toBe('PENDING');
     expect(search).not.toHaveBeenCalled();
+  });
+
+  it('loads location options with the current text when a route field gets focus', async () => {
+    httpTesting.expectOne('/suppliers').flush([]);
+    await fixture.whenStable();
+    const search = vi.spyOn(TestBed.inject(LocationsService), 'search');
+    const element = fixture.nativeElement as HTMLElement;
+
+    element
+      .querySelector('input[formControlName="source"]')
+      ?.dispatchEvent(new FocusEvent('focus'));
+    component.form.controls.destination.setValue('Port of Haifa, Israel', { emitEvent: false });
+    element
+      .querySelector('input[formControlName="destination"]')
+      ?.dispatchEvent(new FocusEvent('focus'));
+
+    expect(search.mock.calls).toEqual([[''], ['Port of Haifa, Israel']]);
   });
 
   it('swaps the origin and destination', async () => {

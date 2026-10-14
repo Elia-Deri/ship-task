@@ -8,7 +8,18 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { CdkConnectedOverlay, CdkOverlayOrigin } from '@angular/cdk/overlay';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Component, computed, ElementRef, inject, signal, viewChild } from '@angular/core';
-import { catchError, debounceTime, distinctUntilChanged, of, switchMap, tap } from 'rxjs';
+import {
+  catchError,
+  debounceTime,
+  distinctUntilChanged,
+  filter,
+  map,
+  merge,
+  of,
+  Subject,
+  switchMap,
+  tap,
+} from 'rxjs';
 import {
   DateRange,
   DefaultMatCalendarRangeStrategy,
@@ -23,6 +34,8 @@ import { SearchService } from '@/app/service/search';
 import { knownLocationValidator, ShowOnSubmitErrorStateMatcher } from './utils';
 import { SuppliersService } from '@/app/service/suppliers';
 import { LocationsService } from '@/app/service/locations';
+
+type LocationField = 'source' | 'destination';
 
 @Component({
   imports: [
@@ -53,6 +66,7 @@ export class SearchForm {
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly datesOrigin = viewChild.required('datesOrigin', { read: CdkOverlayOrigin });
   private readonly calendarPanel = viewChild<ElementRef<HTMLElement>>('calendarPanel');
+  private readonly focusedLocationField = new Subject<LocationField>();
 
   private readonly knownLocation = knownLocationValidator((query) =>
     this.locationsService.search(query),
@@ -104,6 +118,10 @@ export class SearchForm {
     });
   }
 
+  loadLocationOptions(field: LocationField): void {
+    this.focusedLocationField.next(field);
+  }
+
   swapRoute(): void {
     const { source, destination } = this.form.controls;
     this.form.patchValue({ source: destination.value, destination: source.value });
@@ -140,11 +158,16 @@ export class SearchForm {
     this.changeCalendarState(false);
   }
 
-  private searchLocations(field: 'source' | 'destination') {
+  private searchLocations(field: LocationField) {
+    const control = this.form.controls[field];
+    const typedQueries = control.valueChanges.pipe(debounceTime(250), distinctUntilChanged());
+    const focusQueries = this.focusedLocationField.pipe(
+      filter((focusedField) => focusedField === field),
+      map(() => control.value),
+    );
+
     return toSignal(
-      this.form.controls[field].valueChanges.pipe(
-        debounceTime(250),
-        distinctUntilChanged(),
+      merge(typedQueries, focusQueries).pipe(
         switchMap((query) => this.locationsService.search(query).pipe(catchError(() => of([])))),
       ),
       { initialValue: [] },
