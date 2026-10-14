@@ -4,22 +4,20 @@ using ShipTask.Api.Suppliers;
 
 namespace ShipTask.Api.Searches;
 
-public class SearchService(SearchIdGenerator searchIdGenerator, TimeProvider timeProvider, ILogger<SearchService> logger)
+public class SearchService(SearchStore searchStore, TimeProvider timeProvider, ILogger<SearchService> logger)
 {
     private static readonly TimeSpan _searchTimeout = TimeSpan.FromSeconds(6);
-
 
     public async IAsyncEnumerable<SearchEvent> RunAsync(
         SearchRequest request,
         IReadOnlyList<ISupplier> suppliers,
-        [EnumeratorCancellation] CancellationToken ct
-        )
+        [EnumeratorCancellation] CancellationToken ct)
     {
         using var timeoutCts = new CancellationTokenSource(_searchTimeout, timeProvider);
         using var searchCts = CancellationTokenSource.CreateLinkedTokenSource(ct, timeoutCts.Token);
 
-        // TODO: insert the search row and use its id instead of the generator.
-        yield return new SearchStarted(searchIdGenerator.Next(), suppliers.Count);
+        var search = await searchStore.CreateAsync(request, [.. suppliers.Select(supplier => supplier.Id)], ct);
+        yield return new SearchStarted(search.Id, suppliers.Count);
 
         var basePrice = PriceGenerator.GetBasePrice(request.Source, request.Destination, request.StartDate, request.EndDate);
         var offers = suppliers.Select(supplier => GetSupplierResultAsync(supplier, basePrice, searchCts.Token, ct)).ToArray();
@@ -46,8 +44,7 @@ public class SearchService(SearchIdGenerator searchIdGenerator, TimeProvider tim
         finally
         {
             var results = await Task.WhenAll(offers);
-            var finalStatus = GetSearchStatus(results);
-            // TODO: save finalStatus and results with CancellationToken.None, since ct is already cancelled on disconnect.
+            await searchStore.CompleteAsync(search, results, GetSearchStatus(results));
         }
     }
 
@@ -55,8 +52,7 @@ public class SearchService(SearchIdGenerator searchIdGenerator, TimeProvider tim
         ISupplier supplier,
         long basePrice,
         CancellationToken searchCT,
-        CancellationToken requestCT
-        )
+        CancellationToken requestCT)
     {
         var startTimestamp = timeProvider.GetTimestamp();
         long? offerPrice = null;

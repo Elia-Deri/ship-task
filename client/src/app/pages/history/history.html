@@ -1,0 +1,15 @@
+<section
+  class="page-container flex h-[calc(100dvh-4rem)] flex-col gap-4 py-6 2xl:h-[calc(100dvh-5rem)]"
+>
+  <h1 class="text-2xl font-bold tracking-tight text-slate-900">Search history</h1>
+
+  <app-history-filters [routes]="routes()" (filtersChange)="filters.set($event)" />
+
+  @if (hasError()) {
+    <p class="text-sm font-semibold text-red-700" role="alert">
+      Couldn't load the search history. Try changing the filters again.
+    </p>
+  }
+
+  <app-history-table class="min-h-0 flex-1" [rows]="rows()" [isLoading]="isLoading()" />
+</section>

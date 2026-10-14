@@ -1,13 +1,25 @@
-import { catchError, of, tap } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { CdkConnectedOverlay, CdkOverlayOrigin } from '@angular/cdk/overlay';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Component, computed, ElementRef, inject, signal, viewChild } from '@angular/core';
+import {
+  catchError,
+  debounceTime,
+  distinctUntilChanged,
+  filter,
+  map,
+  merge,
+  of,
+  Subject,
+  switchMap,
+  tap,
+} from 'rxjs';
 import {
   DateRange,
   DefaultMatCalendarRangeStrategy,
@@ -15,11 +27,15 @@ import {
   MatCalendar,
 } from '@angular/material/datepicker';
 
+import { toUtcMidnight } from '@/app/utils';
 import { DateDisplay } from './date-display';
 import { Supplier } from '@/app/models/supplier';
 import { SearchService } from '@/app/service/search';
+import { knownLocationValidator, ShowOnSubmitErrorStateMatcher } from './utils';
 import { SuppliersService } from '@/app/service/suppliers';
-import { ShowOnSubmitErrorStateMatcher, toUtcMidnight } from './utils';
+import { LocationsService } from '@/app/service/locations';
+
+type LocationField = 'source' | 'destination';
 
 @Component({
   imports: [
@@ -32,6 +48,7 @@ import { ShowOnSubmitErrorStateMatcher, toUtcMidnight } from './utils';
     MatFormFieldModule,
     CdkConnectedOverlay,
     ReactiveFormsModule,
+    MatAutocompleteModule,
   ],
   providers: [
     { provide: MAT_DATE_RANGE_SELECTION_STRATEGY, useClass: DefaultMatCalendarRangeStrategy },
@@ -45,13 +62,19 @@ import { ShowOnSubmitErrorStateMatcher, toUtcMidnight } from './utils';
 export class SearchForm {
   private readonly searchService = inject(SearchService);
   private readonly suppliersService = inject(SuppliersService);
+  private readonly locationsService = inject(LocationsService);
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly datesOrigin = viewChild.required('datesOrigin', { read: CdkOverlayOrigin });
   private readonly calendarPanel = viewChild<ElementRef<HTMLElement>>('calendarPanel');
+  private readonly focusedLocationField = new Subject<LocationField>();
+
+  private readonly knownLocation = knownLocationValidator((query) =>
+    this.locationsService.search(query),
+  );
 
   readonly form = this.fb.group({
-    source: ['', Validators.required],
-    destination: ['', Validators.required],
+    source: ['', Validators.required, this.knownLocation],
+    destination: ['', Validators.required, this.knownLocation],
     startDate: [null as Date | null, Validators.required],
     endDate: [null as Date | null, Validators.required],
     suppliers: [[] as Supplier[], Validators.required],
@@ -69,6 +92,8 @@ export class SearchForm {
     ),
     { initialValue: [] },
   );
+  protected readonly sourceOptions = this.searchLocations('source');
+  protected readonly destinationOptions = this.searchLocations('destination');
   protected readonly startDate = toSignal(this.form.controls.startDate.valueChanges, {
     initialValue: null,
   });
@@ -81,15 +106,20 @@ export class SearchForm {
 
   submit(): void {
     const { source, destination, startDate, endDate, suppliers } = this.form.getRawValue();
-    if (this.form.invalid || !startDate || !endDate) return;
+    // `valid` rather than `!invalid`: a location still being checked is PENDING, which isn't invalid.
+    if (!this.form.valid || !startDate || !endDate) return;
 
     this.searchService.search({
-      source: source.trim(),
-      destination: destination.trim(),
+      source,
+      destination,
       startDate: toUtcMidnight(startDate),
       endDate: toUtcMidnight(endDate),
       supplierIds: suppliers.map((supplier) => supplier.id),
     });
+  }
+
+  loadLocationOptions(field: LocationField): void {
+    this.focusedLocationField.next(field);
   }
 
   swapRoute(): void {
@@ -126,5 +156,21 @@ export class SearchForm {
 
     endDate.setValue(date);
     this.changeCalendarState(false);
+  }
+
+  private searchLocations(field: LocationField) {
+    const control = this.form.controls[field];
+    const typedQueries = control.valueChanges.pipe(debounceTime(250), distinctUntilChanged());
+    const focusQueries = this.focusedLocationField.pipe(
+      filter((focusedField) => focusedField === field),
+      map(() => control.value),
+    );
+
+    return toSignal(
+      merge(typedQueries, focusQueries).pipe(
+        switchMap((query) => this.locationsService.search(query).pipe(catchError(() => of([])))),
+      ),
+      { initialValue: [] },
+    );
   }
 }

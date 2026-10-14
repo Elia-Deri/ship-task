@@ -18,4 +18,13 @@ describe('App', () => {
 
     expect(compiled.querySelector('header a')?.textContent).toContain('PriceHunt');
   });
+
+  it('links the logo home and the clock icon to the history page', async () => {
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    const links = (fixture.nativeElement as HTMLElement).querySelectorAll('header a');
+
+    expect(links[0].getAttribute('href')).toBe('/');
+    expect(links[1].getAttribute('href')).toBe('/history');
+  });
 });

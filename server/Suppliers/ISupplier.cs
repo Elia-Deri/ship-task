@@ -6,7 +6,7 @@ public interface ISupplier
 
     string Name { get; }
 
-    Task<long> GetOfferAsync(long basePriceMinor, CancellationToken ct);
+    Task<long> GetOfferAsync(long basePrice, CancellationToken ct);
 }
 
 

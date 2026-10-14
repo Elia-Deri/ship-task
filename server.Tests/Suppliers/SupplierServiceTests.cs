@@ -1,27 +1,17 @@
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 
 using ShipTask.Api.Data;
+using ShipTask.Api.Searches;
 using ShipTask.Api.Suppliers;
+using ShipTask.Api.Data.Entities;
 
 namespace ShipTask.Api.Tests.Suppliers;
 
 public sealed class SupplierServiceTests : IDisposable
 {
-    private readonly SqliteConnection _connection = new("DataSource=:memory:");
-    private readonly DbContextOptions<PriceHuntDbContext> _options;
+    private readonly SqliteTestDatabase _database = new();
 
-    public SupplierServiceTests()
-    {
-        // An in-memory SQLite database lives only while its connection stays open.
-        _connection.Open();
-        _options = new DbContextOptionsBuilder<PriceHuntDbContext>().UseSqlite(_connection).Options;
-
-        using var db = CreateContext();
-        db.Database.Migrate();
-    }
-
-    public void Dispose() => _connection.Dispose();
+    public void Dispose() => _database.Dispose();
 
     [Fact]
     public async Task ValidateSupplierListAsync_EmptyDatabase_SeedsDefaultSuppliers()
@@ -84,7 +74,35 @@ public sealed class SupplierServiceTests : IDisposable
         Assert.Single(behaviors, behavior => behavior == SupplierBehavior.Flaky);
     }
 
-    private PriceHuntDbContext CreateContext() => new(_options);
+    [Fact]
+    public async Task ValidateSupplierListAsync_InvalidListWithHistory_DeletesHistoryAndReseeds()
+    {
+        await ValidateSupplierListAsync();
+        var idsBefore = await LoadIdsAsync();
+        await using (var db = CreateContext())
+        {
+            db.Searches.Add(new Search
+            {
+                Source = "Haifa",
+                Destination = "Rotterdam",
+                StartDate = new DateOnly(2026, 10, 14),
+                EndDate = new DateOnly(2026, 10, 20),
+                Status = SearchStatus.Completed,
+                Responses = [new SupplierResponse { SupplierId = idsBefore[0], Status = SupplierResultStatus.Succeeded, Price = 100_00 }],
+            });
+            await db.SaveChangesAsync();
+            await db.Suppliers.Where(s => s.Id == idsBefore[1]).ExecuteDeleteAsync();
+        }
+
+        await ValidateSupplierListAsync();
+
+        await using var verifyDb = CreateContext();
+        Assert.Equal(7, await verifyDb.Suppliers.CountAsync());
+        Assert.Empty(await verifyDb.Searches.ToListAsync());
+        Assert.Empty(await verifyDb.SupplierResponses.ToListAsync());
+    }
+
+    private PriceHuntDbContext CreateContext() => _database.CreateContext();
 
     private async Task ValidateSupplierListAsync()
     {
