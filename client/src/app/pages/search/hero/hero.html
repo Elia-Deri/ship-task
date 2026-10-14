@@ -1,0 +1,32 @@
+<section
+  class="hero relative flex min-h-[clamp(440px,60vh,720px)] items-center overflow-hidden bg-[#0b1f3a] pb-36 pt-16 text-white md:pb-44 md:pt-20 2xl:pb-56"
+  [class.compact]="isCompact()"
+>
+  <div class="glow top-right-glow"></div>
+  <div class="glow bottom-left-glow"></div>
+  <svg class="route hidden md:block" viewBox="0 0 400 200" fill="none" aria-hidden="true">
+    <path
+      d="M10 170 C 120 20, 280 20, 390 120"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-dasharray="6 8"
+    />
+    <circle cx="10" cy="170" r="6" fill="currentColor" />
+    <circle cx="390" cy="120" r="6" fill="currentColor" />
+  </svg>
+
+  <div class="page-container relative">
+    @if (!isCompact()) {
+      <h1 class="text-4xl font-bold tracking-tight md:text-5xl xl:text-6xl 2xl:text-7xl">
+        Ship it for less.
+      </h1>
+      <p
+        class="mb-12 mt-3 text-lg text-slate-300 md:mb-14 xl:mb-16 xl:mt-4 xl:text-xl 2xl:mb-20 2xl:text-2xl"
+      >
+        Compare live prices from seven carriers in seconds.
+      </p>
+    }
+
+    <ng-content />
+  </div>
+</section>
