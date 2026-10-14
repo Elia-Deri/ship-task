@@ -45,6 +45,7 @@
 }
 
 .seg {
+  min-width: 0;
   background: white;
   padding-block: 6px;
   transition: background-color 150ms;
@@ -59,7 +60,7 @@
 }
 
 .calendar-panel {
-  width: clamp(280px, min(24vw, 42vh), 380px);
+  width: clamp(260px, min(20vw, 36vh), 320px);
   max-width: calc(100vw - 2rem);
   margin-block: 8px;
   border-radius: 1rem;
@@ -69,9 +70,15 @@
 
 .search-btn {
   height: 68px;
-  padding: 0 2.5rem;
+  padding: 0 1.5rem;
   font-size: 1rem;
   border-radius: 1rem;
+}
+
+@media (width >= 80rem) {
+  .search-btn {
+    padding: 0 2.5rem;
+  }
 }
 
 @media (width >= 96rem) {

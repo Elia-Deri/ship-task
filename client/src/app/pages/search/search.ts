@@ -1,10 +1,11 @@
-import { DatePipe } from '@angular/common';
+import { catchError, of, tap } from 'rxjs';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { Component, computed, inject, signal } from '@angular/core';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { CdkConnectedOverlay, CdkOverlayOrigin } from '@angular/cdk/overlay';
 import {
   AbstractControl,
@@ -20,6 +21,8 @@ import {
   MatCalendar,
 } from '@angular/material/datepicker';
 
+import { DateDisplay } from './date-display';
+import { Supplier } from '../../models/supplier';
 import { SuppliersService } from '../../service/suppliers';
 
 class ShowOnSubmitErrorStateMatcher implements ErrorStateMatcher {
@@ -30,10 +33,11 @@ class ShowOnSubmitErrorStateMatcher implements ErrorStateMatcher {
 
 @Component({
   imports: [
-    DatePipe,
+    DateDisplay,
     MatCalendar,
     MatInputModule,
     MatButtonModule,
+    MatSelectModule,
     CdkOverlayOrigin,
     MatFormFieldModule,
     CdkConnectedOverlay,
@@ -56,11 +60,21 @@ export class Search {
     destination: ['', Validators.required],
     startDate: [null as Date | null, Validators.required],
     endDate: [null as Date | null, Validators.required],
-    suppliers: [[] as string[], Validators.required],
+    suppliers: [[] as Supplier[], Validators.required],
   });
 
   readonly isCalendarOpen = signal(false);
-  readonly suppliers = signal<string[]>([]);
+  protected readonly hasSuppliersError = signal(false);
+  protected readonly suppliers = toSignal(
+    this.suppliersService.getAll().pipe(
+      tap((availableSuppliers) => this.form.controls.suppliers.setValue(availableSuppliers)),
+      catchError(() => {
+        this.hasSuppliersError.set(true);
+        return of([]);
+      }),
+    ),
+    { initialValue: [] },
+  );
   protected readonly startDate = toSignal(this.form.controls.startDate.valueChanges, {
     initialValue: null,
   });
@@ -70,16 +84,6 @@ export class Search {
   protected readonly selectedRange = computed(
     () => new DateRange(this.startDate(), this.endDate()),
   );
-
-  constructor() {
-    this.suppliersService
-      .getAll()
-      .pipe(takeUntilDestroyed())
-      .subscribe((availableSuppliers) => {
-        this.suppliers.set(availableSuppliers);
-        this.form.controls.suppliers.setValue(availableSuppliers);
-      });
-  }
 
   submit() {}
 

@@ -1,0 +1,12 @@
+{
+  "name": "pricehunt",
+  "private": true,
+  "scripts": {
+    "postinstall": "npm install --prefix client",
+    "start": "concurrently --kill-others --names server,client --prefix-colors blue,magenta \"dotnet run --project server\" \"npm start --prefix client\"",
+    "test": "dotnet test server.Tests && npm test --prefix client -- --watch=false"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.6"
+  }
+}
